@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rutina Bandas</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100dvh;overflow:hidden;background:#0a0a0a;font-family:'Barlow',sans-serif;touch-action:none}
+
+#slider{display:flex;height:100dvh;transition:transform .36s cubic-bezier(.4,0,.2,1);will-change:transform}
+.slide{min-width:100vw;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+.slide[data-b="intro"] {background:linear-gradient(150deg,#111 0%,#0a0a0a 100%)}
+.slide[data-b="warm"]  {background:linear-gradient(150deg,#130e00 0%,#0a0a0a 100%)}
+.slide[data-b="1"]     {background:linear-gradient(150deg,#0a1200 0%,#0a0a0a 100%)}
+.slide[data-b="2"]     {background:linear-gradient(150deg,#00090f 0%,#0a0a0a 100%)}
+.slide[data-b="3"]     {background:linear-gradient(150deg,#130008 0%,#0a0a0a 100%)}
+.slide[data-b="4"]     {background:linear-gradient(150deg,#120800 0%,#0a0a0a 100%)}
+.slide[data-b="done"]  {background:linear-gradient(150deg,#001208 0%,#0a0a0a 100%)}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 16px 6px;flex-shrink:0}
+.blabel{font-family:'Barlow Condensed',sans-serif;font-size:.66rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+.prog-wrap{flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .4s ease}
+.slide-num{font-size:.66rem;font-weight:600;color:#3a3a3a;white-space:nowrap}
+
+/* EXERCISE SLIDE */
+.ex-slide{flex:1;display:flex;flex-direction:column;padding:8px 16px 4px;gap:7px;min-height:0}
+
+/* header: title left, yt right */
+.ex-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-shrink:0}
+.ex-title{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;font-weight:900;text-transform:uppercase;color:#f0f0f0;line-height:.95;letter-spacing:.01em}
+.ex-title small{display:block;font-family:'Barlow',sans-serif;font-size:.68rem;font-weight:600;color:#555;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;line-height:1.2}
+.yt-btn{display:flex;align-items:center;gap:4px;background:#ff0000;color:#fff;text-decoration:none;font-size:.68rem;font-weight:700;padding:5px 9px;border-radius:6px;white-space:nowrap;flex-shrink:0;margin-top:2px;line-height:1}
+.yt-btn svg{width:11px;height:11px;fill:#fff;flex-shrink:0}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0}
+.chip{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:7px;font-size:.74rem;font-weight:600;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.04);color:#bbb}
+.chip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.chip-hi{background:rgba(200,255,0,.08);border-color:rgba(200,255,0,.25);color:#c8ff00}
+
+/* steps */
+.steps-lbl{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#333;flex-shrink:0}
+.steps{display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.step{display:flex;gap:9px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:9px;padding:8px 11px;align-items:flex-start;flex-shrink:0}
+.sn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;min-width:16px;line-height:1.5;flex-shrink:0}
+.step p{font-size:.8rem;line-height:1.45;color:#aaa}
+.step p b{color:#ddd}
+
+/* tip */
+.tip{border-radius:8px;padding:8px 11px;font-size:.76rem;line-height:1.4;color:#777;border-left:2px solid;background:rgba(255,255,255,.015);flex-shrink:0}
+.tip b{color:#bbb}
+
+/* BOTTOM NAV */
+.bnav{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 14px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.04);margin-top:4px}
+.nb{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#777;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
+.nb:active{opacity:.6}
+.nb:disabled{opacity:.12;pointer-events:none}
+.nb.pri{width:auto;padding:0 22px;border-radius:22px;background:#c8ff00;color:#000;font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-color:transparent;height:44px}
+.nb.pri:active{background:#b0e000}
+
+/* BLOCK HEADER SLIDE */
+.bh-slide{flex:1;display:flex;flex-direction:column;padding:8px 16px 4px;gap:6px;min-height:0}
+.bh-name{font-family:'Barlow Condensed',sans-serif;font-size:2.4rem;font-weight:900;text-transform:uppercase;color:#f0f0f0;line-height:.92;flex-shrink:0}
+.bh-sub{font-size:.74rem;color:#4a4a4a;line-height:1.4;flex-shrink:0}
+.bh-circuit{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;flex-shrink:0}
+.bh-ct{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#333;margin-bottom:7px}
+.circ{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:.72rem}
+.cex{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.04);border-radius:6px;padding:4px 8px;border:1px solid rgba(255,255,255,.07);color:#888}
+.carr{color:#2a2a2a;font-size:.85rem}
+.cpause{background:rgba(200,255,0,.07);border:1px solid rgba(200,255,0,.2);color:#c8ff00;border-radius:6px;padding:4px 8px;font-size:.72rem;font-weight:600}
+.prep-lbl{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#333;flex-shrink:0}
+.prep-list{display:flex;flex-direction:column;gap:4px;overflow-y:auto;flex:1;min-height:0;scrollbar-width:none}
+.prep-list::-webkit-scrollbar{display:none}
+.pi-row{display:flex;align-items:flex-start;gap:8px;font-size:.77rem;color:#888;line-height:1.35;background:rgba(255,255,255,.02);border-radius:7px;padding:7px 10px;border:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.pi-row .ic{flex-shrink:0;font-size:.9rem;margin-top:1px}
+.pi-row b{color:#bbb}
+
+/* SPECIAL (intro/done) */
+.sp{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px}
+.sp .icon{font-size:3rem;margin-bottom:12px}
+.sp h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2.8rem,13vw,4rem);font-weight:900;line-height:.9;text-transform:uppercase;color:#f0f0f0;margin-bottom:10px}
+.sp h1 em{font-style:normal;color:#c8ff00}
+.sp p{font-size:.82rem;color:#4a4a4a;line-height:1.6}
+.band-grid{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.band-row{display:flex;align-items:center;gap:8px;font-size:.74rem;color:#666;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:6px 10px}
+.swatch{width:18px;height:9px;border-radius:5px;flex-shrink:0}
+
+/* REST SLIDE */
+.rest{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;gap:10px}
+.rest-icon{font-size:3rem}
+.rest-title{font-family:'Barlow Condensed',sans-serif;font-size:2.6rem;font-weight:900;color:#f0f0f0;text-transform:uppercase}
+.rest-tag{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.rest-sub{font-size:.8rem;color:#444;line-height:1.5}
+.rest-mini{display:flex;flex-direction:column;gap:4px;width:100%;max-width:300px;margin-top:6px}
+.rest-ex{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 12px;font-size:.76rem;color:#555}
+</style>
+</head>
+<body>
+<div id="slider">
+
+<!-- INTRO -->
+<div class="slide" data-b="intro">
+  <div class="topbar">
+    <span class="blabel" style="color:#c8ff00;border-color:rgba(200,255,0,.25)">Rutina</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:3%;background:#c8ff00"></div></div>
+    <span class="slide-num">1/23</span>
+  </div>
+  <div class="sp">
+    <div class="icon">🏠</div>
+    <h1>RUTINA<br>CON <em>BANDAS</em></h1>
+    <p>4 bloques en circuito · ~50 min<br>Deslizá para arrancar →</p>
+    <div class="band-grid">
+      <div class="band-row"><div class="swatch" style="background:#eab308"></div>Amarilla 2–7 kg</div>
+      <div class="band-row"><div class="swatch" style="background:#ef4444"></div>Roja 7–16 kg</div>
+      <div class="band-row"><div class="swatch" style="background:#555;border:1px solid #777"></div>Negra 11–30 kg</div>
+      <div class="band-row"><div class="swatch" style="background:#a855f7"></div>Violeta 16–39 kg</div>
+      <div class="band-row" style="grid-column:span 2"><div class="swatch" style="background:#22c55e"></div>Verde 23–54 kg</div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" disabled>←</button>
+    <span></span>
+    <button class="nb pri" onclick="go(1)">EMPEZAR →</button>
+  </div>
+</div>
+
+<!-- WARMUP -->
+<div class="slide" data-b="warm">
+  <div class="topbar">
+    <span class="blabel" style="color:#f59e0b;border-color:rgba(245,158,11,.3)">Calentamiento</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:6%;background:#f59e0b"></div></div>
+    <span class="slide-num">2/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Sin banda · 5–8 min</small>Entrada en calor + Movilidad</div>
+    </div>
+    <div class="chips"><div class="chip chip-hi">⏱ 5–8 min</div></div>
+    <div class="steps-lbl">Cómo hacerlo</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#f59e0b">1</div><p>Trote en el lugar o saltos suaves durante 2 min para elevar temperatura.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">2</div><p>Círculos de hombros: 10 hacia adelante, 10 hacia atrás. Luego cuello suave.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">3</div><p>Rotaciones de cadera: manos en cintura, 10 círculos por cada lado.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">4</div><p>10 sentadillas sin carga, lentas, para movilizar rodillas y tobillos.</p></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">2/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B1 CARÁTULA -->
+<div class="slide" data-b="1">
+  <div class="topbar">
+    <span class="blabel" style="color:#84cc16;border-color:rgba(132,204,22,.3)">Bloque 1</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:13%;background:#84cc16"></div></div>
+    <span class="slide-num">3/23</span>
+  </div>
+  <div class="bh-slide">
+    <div class="bh-name">Core<br>& Empuje</div>
+    <div class="bh-sub">Hacés 1 vuelta completa al circuito, pausás 60–90 seg, repetís 3 veces.</div>
+    <div class="bh-circuit">
+      <div class="bh-ct">Circuito × 3 vueltas</div>
+      <div class="circ">
+        <div class="cex">🧱 Plancha</div><div class="carr">→</div>
+        <div class="cex">💪 Press</div><div class="carr">→</div>
+        <div class="cex">⬆️ Push ups</div><div class="carr">→</div>
+        <div class="cpause">⏸ Pausa</div>
+      </div>
+    </div>
+    <div class="prep-lbl">Preparación</div>
+    <div class="prep-list">
+      <div class="pi-row"><span class="ic">🧱</span><div><b>Plancha frontal:</b> Sin banda. Colchoneta o suelo cómodo.</div></div>
+      <div class="pi-row"><span class="ic">🔴</span><div><b>Press de pecho:</b> Banda <b>roja o negra</b> lista en el suelo. Se pasa por la espalda antes de acostarse.</div></div>
+      <div class="pi-row"><span class="ic">⬆️</span><div><b>Push ups:</b> Sin banda para empezar. Amarilla opcional para más carga.</div></div>
+      <div class="pi-row"><span class="ic">📍</span><div>Recordá: 1 vez cada ejercicio seguido → pausa → repetís. No 3×plancha y luego el siguiente.</div></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">3/23</span>
+    <button class="nb pri" onclick="go(1)">ARRANCAR →</button>
+  </div>
+</div>
+
+<!-- B1 E1: PLANCHA -->
+<div class="slide" data-b="1">
+  <div class="topbar">
+    <span class="blabel" style="color:#84cc16;border-color:rgba(132,204,22,.3)">B1 · 1/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:20%;background:#84cc16"></div></div>
+    <span class="slide-num">4/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Sin banda</small>Plancha Frontal</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=plancha+frontal+correcta+abdominales+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">⏱ 20 seg</div>
+      <div class="chip">× 3 vueltas</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#84cc16">1</div><p>Antebrazos y puntas de pies apoyados. Codos justo debajo de los hombros.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">2</div><p>Cuerpo en línea recta de cabeza a talones. Ni cadera arriba ni hundida.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">3</div><p>Apretá abdomen + glúteos + cuádriceps al mismo tiempo. Respirá con normalidad.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">4</div><p>Aguantá 20 segundos. Si no llegás, hacé 2 × 10 seg con 5 seg de pausa.</p></div>
+    </div>
+    <div class="tip" style="border-color:#84cc16"><b>💡 Progresión:</b> Con banda sobre la espalda baja, extremos bajo las manos, sumás carga extra.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">4/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B1 E2: PRESS PECHO -->
+<div class="slide" data-b="1">
+  <div class="topbar">
+    <span class="blabel" style="color:#84cc16;border-color:rgba(132,204,22,.3)">B1 · 2/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:25%;background:#84cc16"></div></div>
+    <span class="slide-num">5/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda roja / negra · en el suelo</small>Press de Pecho</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=press+pecho+banda+elastica+suelo+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#ef4444"></div>Roja / Negra</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#84cc16">1</div><p>Acostado boca arriba. Pasá la banda por detrás de la espalda, a la altura de los omóplatos.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">2</div><p>Un extremo en cada mano, puños mirando al techo. Codos a ~45° del cuerpo, no abiertos.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">3</div><p>Empujá hacia arriba extendiendo los brazos. No bloquees los codos al final.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">4</div><p>Bajá lento (2–3 seg) hasta que los codos toquen levemente el suelo.</p></div>
+    </div>
+    <div class="tip" style="border-color:#84cc16"><b>💡</b> Cuanta más banda quede bajo la espalda, mayor la tensión. Empezá con roja, sumá negra cuando sea fácil.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">5/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B1 E3: PUSH UPS -->
+<div class="slide" data-b="1">
+  <div class="topbar">
+    <span class="blabel" style="color:#84cc16;border-color:rgba(132,204,22,.3)">B1 · 3/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:30%;background:#84cc16"></div></div>
+    <span class="slide-num">6/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Sin banda · amarilla opcional</small>Push Ups</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=flexiones+push+ups+tecnica+correcta+principiantes" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#eab308"></div>Amarilla opt.</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#84cc16">1</div><p>Manos al ancho de hombros, dedos al frente. Cuerpo recto, abdomen firme.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">2</div><p>Bajá el pecho hasta casi tocar el suelo. Codos a 45°, no abiertos a los lados.</p></div>
+      <div class="step"><div class="sn" style="color:#84cc16">3</div><p>Empujá hasta arriba. Si no llegás, hacelo con rodillas apoyadas en el suelo.</p></div>
+    </div>
+    <div class="tip" style="border-color:#84cc16"><b>💡 Con banda:</b> Pasá la amarilla por la espalda, extremos bajo las palmas. Aumenta la resistencia en la parte más fácil del movimiento.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">6/23</span>
+    <button class="nb pri" onclick="go(1)">PAUSA →</button>
+  </div>
+</div>
+
+<!-- PAUSA B1 -->
+<div class="slide" data-b="1">
+  <div class="topbar">
+    <span class="blabel" style="color:#84cc16;border-color:rgba(132,204,22,.3)">Pausa · B1</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:33%;background:#84cc16"></div></div>
+    <span class="slide-num">7/23</span>
+  </div>
+  <div class="rest">
+    <div class="rest-icon">⏸</div>
+    <div class="rest-title">Pausa</div>
+    <div class="rest-tag" style="color:#84cc16">Bloque 1 · 60–90 seg</div>
+    <div class="rest-sub">1 vuelta completa. Repetís el circuito 3 veces en total.</div>
+    <div class="rest-mini">
+      <div class="rest-ex"><span>🧱</span>Plancha frontal · 20 seg</div>
+      <div class="rest-ex"><span>💪</span>Press de pecho · ×10</div>
+      <div class="rest-ex"><span>⬆️</span>Push ups · ×10</div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">7/23</span>
+    <button class="nb pri" onclick="go(1)">BLOQUE 2 →</button>
+  </div>
+</div>
+
+<!-- B2 CARÁTULA -->
+<div class="slide" data-b="2">
+  <div class="topbar">
+    <span class="blabel" style="color:#38bdf8;border-color:rgba(56,189,248,.3)">Bloque 2</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:38%;background:#38bdf8"></div></div>
+    <span class="slide-num">8/23</span>
+  </div>
+  <div class="bh-slide">
+    <div class="bh-name">Core<br>& Espalda</div>
+    <div class="bh-sub">Hacés 1 vuelta completa al circuito, pausás 60–90 seg, repetís 3 veces.</div>
+    <div class="bh-circuit">
+      <div class="bh-ct">Circuito × 3 vueltas</div>
+      <div class="circ">
+        <div class="cex">🔄 Plancha alt.</div><div class="carr">→</div>
+        <div class="cex">🏋️ Remo acost.</div><div class="carr">→</div>
+        <div class="cex">↗️ Remo bajo</div><div class="carr">→</div>
+        <div class="cpause">⏸ Pausa</div>
+      </div>
+    </div>
+    <div class="prep-lbl">Preparación</div>
+    <div class="prep-list">
+      <div class="pi-row"><span class="ic">🔄</span><div><b>Plancha alternada:</b> Sin banda. En cuadrupedia (4 apoyos).</div></div>
+      <div class="pi-row"><span class="ic">⚫</span><div><b>Remo acostado:</b> Banda <b>negra o violeta</b>. Sentado en el piso, banda en las plantas de los pies.</div></div>
+      <div class="pi-row"><span class="ic">🔴</span><div><b>Remo bajo:</b> Banda <b>roja o negra</b>. Pisá el centro con ambos pies o anclá bajo una pata de mesa.</div></div>
+      <div class="pi-row"><span class="ic">📍</span><div>En ambos remos: el movimiento lo inicia la espalda, no los brazos.</div></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">8/23</span>
+    <button class="nb pri" onclick="go(1)">ARRANCAR →</button>
+  </div>
+</div>
+
+<!-- B2 E1: PLANCHA ALTERNADA -->
+<div class="slide" data-b="2">
+  <div class="topbar">
+    <span class="blabel" style="color:#38bdf8;border-color:rgba(56,189,248,.3)">B2 · 1/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:44%;background:#38bdf8"></div></div>
+    <span class="slide-num">9/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Sin banda · bird-dog</small>Plancha Alternada</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=plancha+alternada+bird+dog+core+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 c/lado</div>
+      <div class="chip">× 3 vueltas</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#38bdf8">1</div><p>Cuadrupedia: manos bajo hombros, rodillas bajo caderas, espalda neutra.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">2</div><p>Extendé brazo derecho y pierna izquierda al mismo tiempo, en línea con el torso.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">3</div><p>Sostené 2 segundos. Volvé al centro sin tocar el suelo. Alternás el otro lado.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">4</div><p>La cadera no debe rotar. Si rota, bajá un poco la pierna extendida.</p></div>
+    </div>
+    <div class="tip" style="border-color:#38bdf8"><b>💡 Con banda:</b> Colocá la banda alrededor del pie y pasala por el hombro opuesto para agregar resistencia.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">9/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B2 E2: REMO ACOSTADO -->
+<div class="slide" data-b="2">
+  <div class="topbar">
+    <span class="blabel" style="color:#38bdf8;border-color:rgba(56,189,248,.3)">B2 · 2/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:49%;background:#38bdf8"></div></div>
+    <span class="slide-num">10/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda negra / violeta · sentado en piso</small>Remo Acostado</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=remo+sentado+banda+elastica+espalda+dorsal" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#555;border:1px solid #888"></div>Negra / <div class="dot" style="background:#a855f7;margin-left:2px"></div>Violeta</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#38bdf8">1</div><p>Sentado en el piso, piernas extendidas. Pasá la banda por las plantas de los pies.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">2</div><p>Agarrá los extremos. Espalda recta, leve inclinación al frente.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">3</div><p>Jalá los codos hacia atrás. Al final del movimiento, apretá los omóplatos juntos.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">4</div><p>Volvé lento al frente. Los hombros no deben caer hacia adelante.</p></div>
+    </div>
+    <div class="tip" style="border-color:#38bdf8"><b>💡 Clave:</b> Pensá "juntar omóplatos" antes de doblar los codos. El movimiento arranca de la espalda.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">10/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B2 E3: REMO BAJO -->
+<div class="slide" data-b="2">
+  <div class="topbar">
+    <span class="blabel" style="color:#38bdf8;border-color:rgba(56,189,248,.3)">B2 · 3/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:53%;background:#38bdf8"></div></div>
+    <span class="slide-num">11/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda roja / negra · anclaje bajo</small>Remo Bajo</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=remo+bajo+polea+banda+elastica+casa+dorsal" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#ef4444"></div>Roja / Negra</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#38bdf8">1</div><p>Pisá la banda con ambos pies (o anclá bajo pata de mesa / puerta cerrada).</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">2</div><p>De pie o levemente inclinado, agarrá los extremos. Anclaje debe quedar bajo.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">3</div><p>Jalá hacia el abdomen llevando los codos hacia atrás. Apretá la espalda al final.</p></div>
+      <div class="step"><div class="sn" style="color:#38bdf8">4</div><p>Para "6 lados": alternás 1 brazo por vez, 6 reps cada lado.</p></div>
+    </div>
+    <div class="tip" style="border-color:#38bdf8"><b>💡 Ajuste:</b> Más cerca del centro al pisar = más tensión. Más afuera = menos.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">11/23</span>
+    <button class="nb pri" onclick="go(1)">PAUSA →</button>
+  </div>
+</div>
+
+<!-- PAUSA B2 -->
+<div class="slide" data-b="2">
+  <div class="topbar">
+    <span class="blabel" style="color:#38bdf8;border-color:rgba(56,189,248,.3)">Pausa · B2</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:56%;background:#38bdf8"></div></div>
+    <span class="slide-num">12/23</span>
+  </div>
+  <div class="rest">
+    <div class="rest-icon">⏸</div>
+    <div class="rest-title">Pausa</div>
+    <div class="rest-tag" style="color:#38bdf8">Bloque 2 · 60–90 seg</div>
+    <div class="rest-sub">1 vuelta completa. Repetís el circuito 3 veces en total.</div>
+    <div class="rest-mini">
+      <div class="rest-ex"><span>🔄</span>Plancha alternada · ×10 c/lado</div>
+      <div class="rest-ex"><span>🏋️</span>Remo acostado · ×10</div>
+      <div class="rest-ex"><span>↗️</span>Remo bajo · ×10</div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">12/23</span>
+    <button class="nb pri" onclick="go(1)">BLOQUE 3 →</button>
+  </div>
+</div>
+
+<!-- B3 CARÁTULA -->
+<div class="slide" data-b="3">
+  <div class="topbar">
+    <span class="blabel" style="color:#f472b6;border-color:rgba(244,114,182,.3)">Bloque 3 ★</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:61%;background:#f472b6"></div></div>
+    <span class="slide-num">13/23</span>
+  </div>
+  <div class="bh-slide">
+    <div class="bh-name">Glúteos<br>& Piernas</div>
+    <div class="bh-sub">El bloque que marcaste · 3 vueltas al circuito · 60–90 seg pausa.</div>
+    <div class="bh-circuit">
+      <div class="bh-ct">Circuito × 3 vueltas</div>
+      <div class="circ">
+        <div class="cex">🍑 Puente</div><div class="carr">→</div>
+        <div class="cex">🦵 Sentadilla</div><div class="carr">→</div>
+        <div class="cex">🦿 Step up</div><div class="carr">→</div>
+        <div class="cpause">⏸ Pausa</div>
+      </div>
+    </div>
+    <div class="prep-lbl">Preparación</div>
+    <div class="prep-list">
+      <div class="pi-row"><span class="ic">🟢</span><div><b>Puente glúteos:</b> Banda <b>verde o violeta</b>. Una silla resistente actúa como cajón: espalda alta apoyada en el borde.</div></div>
+      <div class="pi-row"><span class="ic">🔴</span><div><b>Sentadillas:</b> Banda <b>roja o negra</b>. Pisás el centro, extremos a los hombros. Variante fácil: sostener frente al pecho.</div></div>
+      <div class="pi-row"><span class="ic">🟡</span><div><b>Step up:</b> Banda <b>amarilla o roja</b>. Necesitás silla firme o escalón. Sin banda también está bien al inicio.</div></div>
+      <div class="pi-row"><span class="ic">📍</span><div>En el puente: todo el trabajo es del glúteo. La espalda baja no compensa.</div></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">13/23</span>
+    <button class="nb pri" onclick="go(1)">ARRANCAR →</button>
+  </div>
+</div>
+
+<!-- B3 E1: PUENTE GLUTEOS -->
+<div class="slide" data-b="3">
+  <div class="topbar">
+    <span class="blabel" style="color:#f472b6;border-color:rgba(244,114,182,.3)">B3 · 1/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:66%;background:#f472b6"></div></div>
+    <span class="slide-num">14/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda verde / violeta · silla como cajón</small>Puente Glúteos</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=hip+thrust+banda+elastica+casa+gluteos+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#22c55e"></div>Verde / <div class="dot" style="background:#a855f7;margin-left:2px"></div>Violeta</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#f472b6">1</div><p>Espalda alta apoyada en el borde de la silla. Pies firmes en el suelo, rodillas flexionadas.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">2</div><p>Banda sobre las caderas. Sujetá los extremos contra el suelo o silla con las manos.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">3</div><p>Empujá caderas hacia arriba. En la cima: apretá FUERTE los glúteos. Cuerpo en línea recta.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">4</div><p>Bajá controlado. La espalda baja no trabaja: todo es el glúteo.</p></div>
+    </div>
+    <div class="tip" style="border-color:#f472b6"><b>💡</b> Empujá desde los talones, no desde las puntas. Sentís mucho más el glúteo así.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">14/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B3 E2: SENTADILLAS -->
+<div class="slide" data-b="3">
+  <div class="topbar">
+    <span class="blabel" style="color:#f472b6;border-color:rgba(244,114,182,.3)">B3 · 2/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:70%;background:#f472b6"></div></div>
+    <span class="slide-num">15/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda roja / negra</small>Sentadillas</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=sentadilla+banda+elastica+correcta+casa+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#ef4444"></div>Roja / Negra</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#f472b6">1</div><p>Pisá la banda con los pies al ancho de hombros. Llevá los extremos a los hombros.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">2</div><p>Pecho arriba, mirada al frente. Bajá como si fueras a sentarte en una silla.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">3</div><p>Rodillas en dirección de los pies (no hacia adentro). Muslos paralelos o más bajo.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">4</div><p>Empujá desde los talones para subir. Apretá glúteos arriba.</p></div>
+    </div>
+    <div class="tip" style="border-color:#f472b6"><b>💡 Variante fácil:</b> Sostenés la banda con las manos frente al pecho (goblet squat). Más cómodo para empezar.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">15/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B3 E3: STEP UP -->
+<div class="slide" data-b="3">
+  <div class="topbar">
+    <span class="blabel" style="color:#f472b6;border-color:rgba(244,114,182,.3)">B3 · 3/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:74%;background:#f472b6"></div></div>
+    <span class="slide-num">16/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Amarilla / roja · silla firme</small>Step Up 1 Pie</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=step+up+banco+una+pierna+banda+elastica+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 c/pierna</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#eab308"></div>Amarilla / Roja</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#f472b6">1</div><p>Pisá la banda con el pie de la pierna que trabaja. Sostené el extremo en la mano del mismo lado.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">2</div><p>Apoyá ese pie en la silla. El peso cae en el talón de la pierna elevada.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">3</div><p>Empujá hacia arriba SOLO con esa pierna. No te impulsés con la de abajo.</p></div>
+      <div class="step"><div class="sn" style="color:#f472b6">4</div><p>Bajá controlado. Completás todas las reps de un lado y luego cambiás.</p></div>
+    </div>
+    <div class="tip" style="border-color:#f472b6"><b>💡</b> Sin banda también funciona al inicio. Sumá la amarilla cuando lo sientas fácil.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">16/23</span>
+    <button class="nb pri" onclick="go(1)">PAUSA →</button>
+  </div>
+</div>
+
+<!-- PAUSA B3 -->
+<div class="slide" data-b="3">
+  <div class="topbar">
+    <span class="blabel" style="color:#f472b6;border-color:rgba(244,114,182,.3)">Pausa · B3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:77%;background:#f472b6"></div></div>
+    <span class="slide-num">17/23</span>
+  </div>
+  <div class="rest">
+    <div class="rest-icon">⏸</div>
+    <div class="rest-title">Pausa</div>
+    <div class="rest-tag" style="color:#f472b6">Bloque 3 · 60–90 seg</div>
+    <div class="rest-sub">1 vuelta completa. Repetís el circuito 3 veces en total.</div>
+    <div class="rest-mini">
+      <div class="rest-ex"><span>🍑</span>Puente glúteos · ×10</div>
+      <div class="rest-ex"><span>🦵</span>Sentadillas · ×10</div>
+      <div class="rest-ex"><span>🦿</span>Step up · ×10 c/pierna</div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">17/23</span>
+    <button class="nb pri" onclick="go(1)">BLOQUE 4 →</button>
+  </div>
+</div>
+
+<!-- B4 CARÁTULA -->
+<div class="slide" data-b="4">
+  <div class="topbar">
+    <span class="blabel" style="color:#fb923c;border-color:rgba(251,146,60,.3)">Bloque 4</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:81%;background:#fb923c"></div></div>
+    <span class="slide-num">18/23</span>
+  </div>
+  <div class="bh-slide">
+    <div class="bh-name">Hombros<br>& Brazos</div>
+    <div class="bh-sub">Último bloque · 3 vueltas al circuito · 60–90 seg pausa.</div>
+    <div class="bh-circuit">
+      <div class="bh-ct">Circuito × 3 vueltas</div>
+      <div class="circ">
+        <div class="cex">🙌 Press mil.</div><div class="carr">→</div>
+        <div class="cex">💪 Curl bíceps</div><div class="carr">→</div>
+        <div class="cex">⬇️ Fondos</div><div class="carr">→</div>
+        <div class="cpause">⏸ Pausa</div>
+      </div>
+    </div>
+    <div class="prep-lbl">Preparación</div>
+    <div class="prep-list">
+      <div class="pi-row"><span class="ic">🔴</span><div><b>Press militar:</b> Banda <b>roja o negra</b>. De pie, pisás la banda, extremos a los hombros.</div></div>
+      <div class="pi-row"><span class="ic">🟡</span><div><b>Curl bíceps:</b> Banda <b>amarilla o roja</b>. De pie. Codos PEGADOS al cuerpo durante todo el movimiento.</div></div>
+      <div class="pi-row"><span class="ic">⬇️</span><div><b>Fondos en banco:</b> Sin banda. Silla firme. Para asistencia: banda gruesa colgada bajo las caderas.</div></div>
+      <div class="pi-row"><span class="ic">🏁</span><div>Último bloque — ¡casi terminás!</div></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">18/23</span>
+    <button class="nb pri" onclick="go(1)">ARRANCAR →</button>
+  </div>
+</div>
+
+<!-- B4 E1: PRESS MILITAR -->
+<div class="slide" data-b="4">
+  <div class="topbar">
+    <span class="blabel" style="color:#fb923c;border-color:rgba(251,146,60,.3)">B4 · 1/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:85%;background:#fb923c"></div></div>
+    <span class="slide-num">19/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda roja / negra · de pie</small>Press Militar</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=press+militar+banda+elastica+hombros+de+pie+tecnica" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#ef4444"></div>Roja / Negra</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#fb923c">1</div><p>Pisá la banda con ambos pies. Llevá los extremos a los hombros, palmas mirando al frente.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">2</div><p>Empujá hacia arriba extendiendo los brazos. No arquees la espalda baja.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">3</div><p>Bajá controlado hasta que las manos vuelvan a los hombros.</p></div>
+    </div>
+    <div class="tip" style="border-color:#fb923c"><b>💡 Ajuste:</b> Más cerca del centro de la banda al pisarla = más tensión. Más afuera = menos.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">19/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B4 E2: CURL BICEPS -->
+<div class="slide" data-b="4">
+  <div class="topbar">
+    <span class="blabel" style="color:#fb923c;border-color:rgba(251,146,60,.3)">B4 · 2/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:89%;background:#fb923c"></div></div>
+    <span class="slide-num">20/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Banda amarilla / roja · de pie</small>Curl Bíceps</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=curl+biceps+banda+elastica+de+pie+tecnica+correcta" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip"><div class="dot" style="background:#eab308"></div>Amarilla / Roja</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#fb923c">1</div><p>Pisá la banda, un extremo en cada mano. Palmas mirando al frente.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">2</div><p>Codos pegados al cuerpo y quietos. Solo se mueven los antebrazos.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">3</div><p>Subí hacia los hombros apretando el bíceps. Bajá lento: 3 segundos.</p></div>
+    </div>
+    <div class="tip" style="border-color:#fb923c"><b>💡 Error común:</b> Si el torso se balancea, bajá la tensión o fijá mejor el codo al costado del cuerpo.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">20/23</span>
+    <button class="nb pri" onclick="go(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- B4 E3: FONDOS -->
+<div class="slide" data-b="4">
+  <div class="topbar">
+    <span class="blabel" style="color:#fb923c;border-color:rgba(251,146,60,.3)">B4 · 3/3</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:93%;background:#fb923c"></div></div>
+    <span class="slide-num">21/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Sin banda · silla firme</small>Fondos en Banco</div>
+      <a class="yt-btn" href="https://www.youtube.com/results?search_query=fondos+banco+triceps+dips+silla+tecnica+correcta" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>YT
+      </a>
+    </div>
+    <div class="chips">
+      <div class="chip chip-hi">× 10 reps</div>
+      <div class="chip">× 3 vueltas</div>
+      <div class="chip">Sin banda</div>
+    </div>
+    <div class="steps-lbl">Técnica</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#fb923c">1</div><p>Al borde de la silla, manos al costado de las caderas, dedos mirando al frente.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">2</div><p>Deslizá el cuerpo hacia adelante sosteniéndote con los brazos. Pies en el suelo.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">3</div><p>Bajá doblando los codos hasta 90°. Espalda cerca del banco, no arqueada.</p></div>
+      <div class="step"><div class="sn" style="color:#fb923c">4</div><p>Empujá con los tríceps hasta extender los brazos. Ese es 1 rep.</p></div>
+    </div>
+    <div class="tip" style="border-color:#fb923c"><b>💡 Más difícil:</b> Elevá los pies en otra silla. Para asistencia, banda gruesa bajo las caderas.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">21/23</span>
+    <button class="nb pri" onclick="go(1)">ELONGACIÓN →</button>
+  </div>
+</div>
+
+<!-- ELONGACION -->
+<div class="slide" data-b="warm">
+  <div class="topbar">
+    <span class="blabel" style="color:#f59e0b;border-color:rgba(245,158,11,.3)">Vuelta a la calma</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:97%;background:#f59e0b"></div></div>
+    <span class="slide-num">22/23</span>
+  </div>
+  <div class="ex-slide">
+    <div class="ex-head">
+      <div class="ex-title"><small>Sin banda · 5–10 min</small>Elongación</div>
+    </div>
+    <div class="chips"><div class="chip chip-hi">⏱ 5–10 min · 30 seg c/estiramiento</div></div>
+    <div class="steps-lbl">Zonas a estirar</div>
+    <div class="steps">
+      <div class="step"><div class="sn" style="color:#f59e0b">1</div><p><b>Pecho:</b> Brazos abiertos contra la pared o entrelazados atrás del cuerpo.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">2</div><p><b>Espalda:</b> Gato-vaca en cuadrupedia, 10 repeticiones lentas y controladas.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">3</div><p><b>Isquiotibiales:</b> Sentado, piernas extendidas, alcanzá las puntas de los pies.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">4</div><p><b>Cuádriceps:</b> De pie, llevá el talón al glúteo. 30 seg por cada lado.</p></div>
+      <div class="step"><div class="sn" style="color:#f59e0b">5</div><p><b>Hombros:</b> Brazo cruzado al pecho, presionalo con el otro. 20 seg c/lado.</p></div>
+    </div>
+    <div class="tip" style="border-color:#f59e0b"><b>💡</b> Respiración profunda en cada estiramiento. No fuerces el rango de movimiento.</div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span class="slide-num">22/23</span>
+    <button class="nb pri" onclick="go(1)">FINALIZAR →</button>
+  </div>
+</div>
+
+<!-- DONE -->
+<div class="slide" data-b="done">
+  <div class="topbar">
+    <span class="blabel" style="color:#c8ff00;border-color:rgba(200,255,0,.25)">Listo</span>
+    <div class="prog-wrap"><div class="prog-fill" style="width:100%;background:#c8ff00"></div></div>
+    <span class="slide-num">23/23</span>
+  </div>
+  <div class="sp">
+    <div class="icon">🏆</div>
+    <h1>¡RUTINA<br><em>COMPLETA!</em></h1>
+    <p>4 bloques · 10 ejercicios · ~50 minutos.</p>
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-size:.58rem;color:#2a2a2a;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px">Resumen</div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:#555;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span>Vueltas por bloque</span><span style="color:#888">× 3</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:#555;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span>Pausa entre vueltas</span><span style="color:#888">60–90 seg</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:#555;padding:7px 0"><span>Series totales</span><span style="color:#888">~36 series</span></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="go(-1)">←</button>
+    <span></span>
+    <button class="nb pri" onclick="goTo(0)">↩ REINICIAR</button>
+  </div>
+</div>
+
+</div>
+<script>
+let cur=0;
+const slides=document.querySelectorAll('.slide');
+const N=slides.length;
+function render(){document.getElementById('slider').style.transform=`translateX(calc(-${cur} * 100vw))`}
+function go(d){cur=Math.max(0,Math.min(N-1,cur+d));render()}
+function goTo(i){cur=i;render()}
+let sx=0,sy=0;
+document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-sx;
+  const dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>38)go(dx<0?1:-1);
+},{passive:true});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1)});
+</script>
+</body>
+</html>
